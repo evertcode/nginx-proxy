@@ -1,0 +1,33 @@
+services:
+  nginx:
+    image: nginx:stable-alpine3.19-slim
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/site/index.html:/usr/share/nginx/html/index.html
+      - logs_data:/var/log/nginx
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:15.7-alpine3.19
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: postgres1234#
+      POSTGRES_DB: reverse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql/init-tables.sql:/docker-entrypoint-initdb.d/1-init-tables.sql
+  application:
+    build: ./app/
+    volumes:
+      - logs_data:/app/logs
+      - ./config:/app/config
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  logs_data:
